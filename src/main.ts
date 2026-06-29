@@ -1,4 +1,5 @@
 import { app, BrowserWindow, Menu, MenuItemConstructorOptions, globalShortcut, shell } from "electron";
+import { spawn } from "node:child_process";
 
 const PRIMARY_URL = process.env.CHATGPT_URL || "https://chat.openai.com/";
 const SESSION_PARTITION = "persist:chatgpt";
@@ -43,6 +44,24 @@ const openInExternalBrowser = (urlString: string): void => {
   void shell.openExternal(urlString);
 };
 
+const openInChromeAppMode = (): void => {
+  const chrome = spawn("open", ["-na", "Google Chrome", "--args", `--app=${PRIMARY_URL}`], {
+    detached: true,
+    stdio: "ignore"
+  });
+
+  chrome.on("error", () => {
+    openInExternalBrowser(PRIMARY_URL);
+  });
+
+  chrome.unref();
+};
+
+const removeElectronFromUserAgent = (window: BrowserWindow): void => {
+  const userAgent = window.webContents.getUserAgent();
+  window.webContents.setUserAgent(userAgent.replace(/\sElectron\/\S+/g, ""));
+};
+
 const toggleMainWindow = (): void => {
   if (!mainWindow) {
     return;
@@ -80,6 +99,8 @@ const bindWindowHandlers = (window: BrowserWindow): void => {
     createAuthWindow(url);
     return { action: "deny" };
   });
+
+  removeElectronFromUserAgent(window);
 
   window.webContents.session.setPermissionRequestHandler((_webContents, _permission, callback) => {
     callback(false);
@@ -165,6 +186,10 @@ const buildAppMenu = (): void => {
           label: "Open in Default Browser",
           click: () => openInExternalBrowser(PRIMARY_URL)
         },
+        {
+          label: "Open in Chrome App Mode",
+          click: openInChromeAppMode
+        },
         { type: "separator" },
         { role: "quit" }
       ]
@@ -210,6 +235,10 @@ const buildAppMenu = (): void => {
         {
           label: "Open in Default Browser",
           click: () => openInExternalBrowser(PRIMARY_URL)
+        },
+        {
+          label: "Open in Chrome App Mode",
+          click: openInChromeAppMode
         },
         { type: "separator" },
         { role: "quit" }

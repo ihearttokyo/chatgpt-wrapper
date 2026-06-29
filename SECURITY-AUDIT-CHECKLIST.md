@@ -11,7 +11,8 @@ Scope: `chatgpt-wrapper` implementation currently in `src/main.ts` and packaging
 | Dedicated persistent session partition | `SESSION_PARTITION = "persist:chatgpt"` in `src/main.ts` and `partition: SESSION_PARTITION` in both main/auth windows. | PASS |
 | No cookie/token copy logic | No `cookies/getCookie/setCookie/session.fromPartition/Authorization/token` patterns in `src/main.ts`. | PASS (no hits) |
 | Hardened `webPreferences` | `sandbox: true`, `contextIsolation: true`, `nodeIntegration: false`, `webSecurity: true`, `webviewTag: false`, `allowRunningInsecureContent: false`, and packaged `devTools: false` are set on both windows. | PASS |
-| Safe link handling | `setWindowOpenHandler`, `will-navigate`, and `shell.openExternal` are wired to an allowlist check (`src/main.ts:34-49`, `:56-74`). | PARTIAL (good block/deny flow; sanitize invalid/empty URLs before calling `openExternal`) |
+| Safe link handling | `setWindowOpenHandler`, `will-navigate`, `will-redirect`, and guarded `shell.openExternal` calls are wired to an allowlist check. | PASS |
+| Google/passkey fallback | Electron user-agent token is stripped before page loads, and the app menu includes a Chrome app-mode fallback for passkey flows that require the user's real browser profile. | PASS |
 | Package artifact path hygiene | `package.json#main = "dist/main.js"` and `tsconfig.json#outDir = "dist"` are aligned. `build.files` and notarization hooks also point at `release`/`build/**/*` resources. | PASS/PARTIAL (aligned, but ensure generated `dist/main.js` exists before launch/package steps) |
 
 ## Suggested remediations (prioritized)
@@ -22,6 +23,7 @@ Scope: `chatgpt-wrapper` implementation currently in `src/main.ts` and packaging
 3. Keep explicit hardening flags:
    - set `webviewTag: false` and `allowRunningInsecureContent: false` in both windows.
 4. Use the separate `createAuthWindow` only for allowlisted popup/login targets, sharing the same persistent partition.
+5. For Google passkey loops, use the Chrome app-mode fallback rather than weakening Electron sandboxing or copying browser cookies.
 
 ## Quick automated checks (copy/paste)
 
