@@ -1,0 +1,51 @@
+{
+  "name": "chatgpt-wrapper",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Lightweight macOS ChatGPT web wrapper built with Electron and TypeScript.",
+  "main": "dist/main.js",
+  "author": "",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "npm run build && electron .",
+    "dist:mac:arm64": "npm run build && electron-builder --mac dmg zip --arm64",
+    "dist:mac:x64": "npm run build && electron-builder --mac dmg zip --x64",
+    "dist:mac:universal": "npm run build && electron-builder --mac dmg zip --universal",
+    "dist:mac:arm64:unsigned": "npm run build && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac dmg zip --arm64 --publish never",
+    "dist:mac:x64:unsigned": "npm run build && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac dmg zip --x64 --publish never",
+    "dist:mac:universal:unsigned": "npm run build && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac dmg zip --universal --publish never"
+  },
+  "build": {
+    "appId": "com.local.chatgptwrapper",
+    "artifactName": "${name}-${version}-${os}-${arch}.${ext}",
+    "productName": "ChatGPT Wrapper",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "build/notarize.cjs"
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist"
+    },
+    "afterSign": "build/notarize.cjs"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@electron/notarize": "^3.1.0",
+    "electron": "^39.2.6",
+    "electron-builder": "^26.0.12",
+    "@types/node": "^24.10.1",
+    "typescript": "^5.9.3"
+  }
+}
