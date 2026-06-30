@@ -13,7 +13,8 @@ Scope: `chatgpt-wrapper` implementation currently in `src/main.ts` and packaging
 | Hardened `webPreferences` | `sandbox: true`, `contextIsolation: true`, `nodeIntegration: false`, `webSecurity: true`, `webviewTag: false`, `allowRunningInsecureContent: false`, and packaged `devTools: false` are set on both windows. | PASS |
 | Safe link handling | `setWindowOpenHandler`, `will-navigate`, `will-redirect`, and guarded `shell.openExternal` calls are wired to an allowlist check. | PASS |
 | Google/passkey fallback | Electron user-agent token is stripped before page loads, and the app menu includes a Chrome app-mode fallback for passkey flows that require the user's real browser profile. | PASS |
-| Package artifact path hygiene | `package.json#main = "dist/main.js"` and `tsconfig.json#outDir = "dist"` are aligned. `build.files` and notarization hooks also point at `release`/`build/**/*` resources. | PASS/PARTIAL (aligned, but ensure generated `dist/main.js` exists before launch/package steps) |
+| Package artifact path hygiene | `package.json#main = "dist/main.js"` and `tsconfig.json#outDir = "dist"` are aligned. `build.files` packages runtime files only, and generated package output goes to ignored `release/`. | PASS |
+| Packaging diagnostics | `npm run package:diagnose` runs an unsigned macOS directory package with a timeout and writes only to ignored `release/`. | PASS for bounded failure behavior; Electron Builder may still hang and exit `124` in affected local environments. |
 
 ## Suggested remediations (prioritized)
 
@@ -37,6 +38,9 @@ rg -n "persist:chatgpt|partition: SESSION_PARTITION|webviewTag\\s*:\\s*false" sr
 echo "==> cookie/token patterns"
 rg -n "cookie|cookies|setCookie|getAllCookies|getCookie|session\\.fromPartition|Authorization|Bearer|localStorage|sessionStorage|token" src/main.ts
 
+echo "==> scripted posture check"
+npm run security:check
+
 echo "==> webPreferences"
 rg -n "webPreferences\\s*:\\s*\\{|nodeIntegration\\s*:\\s*false|contextIsolation\\s*:\\s*true|sandbox\\s*:\\s*true|webSecurity\\s*:\\s*true|webviewTag\\s*:\\s*false|allowRunningInsecureContent\\s*:\\s*false" src/main.ts
 
@@ -48,6 +52,14 @@ node -e "const p=require('./package.json'); console.log('main=',p.main); if (p.m
 node -e "const ts=require('./tsconfig.json'); console.log('outDir=',ts.compilerOptions?.outDir); if(ts.compilerOptions?.outDir!=='dist') process.exit(1);"
 test -f dist/main.js && echo \"dist/main.js present\" || echo \"dist/main.js missing (run npm run build)\"
 ```
+
+## Packaging diagnostics
+
+```bash
+npm run package:diagnose
+```
+
+This builds the TypeScript entrypoint, asks Electron Builder for an unsigned arm64 directory package, and terminates with exit code `124` if the local packaging process does not complete within the diagnostic timeout. It does not install or update `/Applications/ChatGPT Wrapper.app`; compare that installed app separately if you need to confirm it is not stale.
 
 ## GUI validation playbook
 

@@ -64,6 +64,16 @@ npm run dist:mac:universal:unsigned
 
 Build output goes to `release/`, which is ignored by Git.
 
+Packaging does not install or replace `/Applications/ChatGPT Wrapper.app`. If an older copy is already installed there, it can be stale relative to this source tree until you replace it manually with a package from `release/`.
+
+For a bounded packaging diagnostic that avoids DMG/ZIP creation and stops instead of hanging indefinitely:
+
+```bash
+npm run package:diagnose
+```
+
+The diagnostic package script writes only generated output under `release/` and never mutates `/Applications`. If Electron Builder does not complete before the timeout, the script exits `124` and the local packaging hang is still present.
+
 Signed and notarized builds use the regular packaging scripts once Apple credentials are available:
 
 ```bash
@@ -92,11 +102,10 @@ That opens ChatGPT in a Chrome app-style window backed by the normal Chrome prof
 
 ```bash
 npm run build
-rg -n "<webview\\b|webviewTag\\s*:\\s*true" src/main.ts
-rg -n "setCookie|getCookie|getAllCookies|Authorization|Bearer|localStorage|sessionStorage|token" src/main.ts
+npm run security:check
 ```
 
-The build should pass. The two `rg` checks should not find implementation hits for webview use or custom token handling.
+Both commands should pass. The security check verifies the expected hardened window posture and fails if `<webview>`, custom cookie/token/storage handling, analytics-like code, or packaging metadata drift appears in the source.
 
 ## License
 

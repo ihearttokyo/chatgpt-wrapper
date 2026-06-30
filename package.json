@@ -6,13 +6,15 @@
   "license": "Unlicense",
   "scripts": {
     "build": "node scripts/build.cjs",
+    "security:check": "node scripts/security-check.cjs",
     "start": "npm run build && electron .",
-    "dist:mac:arm64": "npm run build && electron-builder --mac dmg zip --arm64",
-    "dist:mac:x64": "npm run build && electron-builder --mac dmg zip --x64",
-    "dist:mac:universal": "npm run build && electron-builder --mac dmg zip --universal",
-    "dist:mac:arm64:unsigned": "npm run build && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac dmg zip --arm64 --publish never",
-    "dist:mac:x64:unsigned": "npm run build && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac dmg zip --x64 --publish never",
-    "dist:mac:universal:unsigned": "npm run build && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac dmg zip --universal --publish never"
+    "package:diagnose": "npm run build && node scripts/package-mac.cjs --arch arm64 --unsigned --dir --timeout-ms 180000",
+    "dist:mac:arm64": "npm run build && node scripts/package-mac.cjs --arch arm64",
+    "dist:mac:x64": "npm run build && node scripts/package-mac.cjs --arch x64",
+    "dist:mac:universal": "npm run build && node scripts/package-mac.cjs --arch universal",
+    "dist:mac:arm64:unsigned": "npm run build && node scripts/package-mac.cjs --arch arm64 --unsigned",
+    "dist:mac:x64:unsigned": "npm run build && node scripts/package-mac.cjs --arch x64 --unsigned",
+    "dist:mac:universal:unsigned": "npm run build && node scripts/package-mac.cjs --arch universal --unsigned"
   },
   "build": {
     "appId": "com.local.chatgptwrapper",
@@ -23,8 +25,8 @@
     },
     "files": [
       "dist/**/*",
-      "scripts/build.cjs",
-      "build/notarize.cjs"
+      "LICENSE",
+      "README.md"
     ],
     "mac": {
       "category": "public.app-category.productivity",
