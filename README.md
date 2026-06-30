@@ -72,7 +72,7 @@ For a bounded packaging diagnostic that avoids DMG/ZIP creation and stops instea
 npm run package:diagnose
 ```
 
-The diagnostic package script writes only generated output under `release/` and never mutates `/Applications`. If Electron Builder does not complete before the timeout, the script exits `124` and the local packaging hang is still present.
+The diagnostic package script writes only generated output under `release/` and never mutates `/Applications`. It disables Electron Builder's update notifier so packaging startup does not depend on an npm registry check. If Electron Builder does not complete before the timeout, the script exits `124` and the local packaging problem is still present.
 
 Signed and notarized builds use the regular packaging scripts once Apple credentials are available:
 

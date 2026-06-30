@@ -14,7 +14,8 @@ Scope: `chatgpt-wrapper` implementation currently in `src/main.ts` and packaging
 | Safe link handling | `setWindowOpenHandler`, `will-navigate`, `will-redirect`, and guarded `shell.openExternal` calls are wired to an allowlist check. | PASS |
 | Google/passkey fallback | Electron user-agent token is stripped before page loads, and the app menu includes a Chrome app-mode fallback for passkey flows that require the user's real browser profile. | PASS |
 | Package artifact path hygiene | `package.json#main = "dist/main.js"` and `tsconfig.json#outDir = "dist"` are aligned. `build.files` packages runtime files only, and generated package output goes to ignored `release/`. | PASS |
-| Packaging diagnostics | `npm run package:diagnose` runs an unsigned macOS directory package with a timeout and writes only to ignored `release/`. | PASS for bounded failure behavior; Electron Builder may still hang and exit `124` in affected local environments. |
+| Packaging diagnostics | `npm run package:diagnose` runs an unsigned macOS directory package with a timeout, disables Electron Builder's update notifier, and writes only to ignored `release/`. | PASS |
+| Native dependency rebuild | `package.json#build.npmRebuild = false` because the app has no runtime dependencies or native modules. | PASS |
 
 ## Suggested remediations (prioritized)
 
@@ -59,7 +60,7 @@ test -f dist/main.js && echo \"dist/main.js present\" || echo \"dist/main.js mis
 npm run package:diagnose
 ```
 
-This builds the TypeScript entrypoint, asks Electron Builder for an unsigned arm64 directory package, and terminates with exit code `124` if the local packaging process does not complete within the diagnostic timeout. It does not install or update `/Applications/ChatGPT Wrapper.app`; compare that installed app separately if you need to confirm it is not stale.
+This builds the TypeScript entrypoint, asks Electron Builder for an unsigned arm64 directory package, and terminates with exit code `124` if the local packaging process does not complete within the diagnostic timeout. It sets `NO_UPDATE_NOTIFIER=1` for the Electron Builder child process so the diagnostic does not depend on an npm registry check. It does not install or update `/Applications/ChatGPT Wrapper.app`; compare that installed app separately if you need to confirm it is not stale.
 
 ## GUI validation playbook
 

@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "Lightweight macOS ChatGPT web wrapper built with Electron and TypeScript.",
   "main": "dist/main.js",
+  "author": "ChatGPT Wrapper contributors",
   "license": "Unlicense",
   "scripts": {
     "build": "node scripts/build.cjs",
@@ -20,6 +21,7 @@
     "appId": "com.local.chatgptwrapper",
     "artifactName": "${name}-${version}-${os}-${arch}.${ext}",
     "productName": "ChatGPT Wrapper",
+    "npmRebuild": false,
     "directories": {
       "output": "release"
     },
@@ -30,6 +32,7 @@
     ],
     "mac": {
       "category": "public.app-category.productivity",
+      "icon": "build/icon.icns",
       "target": [
         "dmg",
         "zip"

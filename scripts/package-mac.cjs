@@ -48,7 +48,11 @@ if (hasFlag("--unsigned")) {
 }
 
 const env = {
-  ...process.env
+  ...process.env,
+  // Electron Builder's update notifier performs a registry check during CLI
+  // startup. In restricted or slow-network environments that can make even
+  // `electron-builder --version` appear to hang before packaging begins.
+  NO_UPDATE_NOTIFIER: "1"
 };
 
 if (hasFlag("--unsigned")) {
