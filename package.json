@@ -6,7 +6,8 @@
   "author": "ChatGPT Wrapper contributors",
   "license": "Unlicense",
   "scripts": {
-    "build": "node scripts/build.cjs",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
     "security:check": "node scripts/security-check.cjs",
     "start": "npm run build && electron .",
     "package:diagnose": "npm run build && node scripts/package-mac.cjs --arch arm64 --unsigned --dir --timeout-ms 180000",

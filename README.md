@@ -37,7 +37,7 @@ flowchart LR
 | --- | --- |
 | App shell | Electron `BrowserWindow`, not `<webview>` |
 | Language | TypeScript |
-| Build | Local TypeScript transpile script |
+| Build | TypeScript compiler (`tsc`) |
 | Login persistence | Dedicated `persist:chatgpt` Electron session |
 | Token handling | No custom cookie, token, or local storage copying |
 | Security defaults | Sandbox on, context isolation on, Node off for web content |
@@ -66,13 +66,15 @@ Build output goes to `release/`, which is ignored by Git.
 
 Packaging does not install or replace `/Applications/ChatGPT Wrapper.app`. If an older copy is already installed there, it can be stale relative to this source tree until you replace it manually with a package from `release/`.
 
-For a bounded packaging diagnostic that avoids DMG/ZIP creation and stops instead of hanging indefinitely:
+For the full release runbook, including why the packaging wrapper keeps a timeout and disables Electron Builder's update notifier, see [docs/packaging.md](docs/packaging.md).
+
+For a diagnostic-only package check that avoids DMG/ZIP creation and stops instead of hanging indefinitely:
 
 ```bash
 npm run package:diagnose
 ```
 
-The diagnostic package script writes only generated output under `release/` and never mutates `/Applications`. It disables Electron Builder's update notifier so packaging startup does not depend on an npm registry check. If Electron Builder does not complete before the timeout, the script exits `124` and the local packaging problem is still present.
+The diagnostic package script writes only generated output under `release/` and never mutates `/Applications`. It disables Electron Builder's update notifier as deterministic packaging hygiene, not as a personal-network workaround. If Electron Builder does not complete before the timeout, the script exits `124` and the local packaging problem is still present.
 
 Signed and notarized builds use the regular packaging scripts once Apple credentials are available:
 
@@ -102,6 +104,7 @@ That opens ChatGPT in a Chrome app-style window backed by the normal Chrome prof
 
 ```bash
 npm run build
+npm run typecheck
 npm run security:check
 ```
 

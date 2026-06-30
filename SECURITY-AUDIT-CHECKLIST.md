@@ -16,6 +16,7 @@ Scope: `chatgpt-wrapper` implementation currently in `src/main.ts` and packaging
 | Package artifact path hygiene | `package.json#main = "dist/main.js"` and `tsconfig.json#outDir = "dist"` are aligned. `build.files` packages runtime files only, and generated package output goes to ignored `release/`. | PASS |
 | Packaging diagnostics | `npm run package:diagnose` runs an unsigned macOS directory package with a timeout, disables Electron Builder's update notifier, and writes only to ignored `release/`. | PASS |
 | Native dependency rebuild | `package.json#build.npmRebuild = false` because the app has no runtime dependencies or native modules. | PASS |
+| TypeScript build path | `npm run build` uses `tsc -p tsconfig.json`, and `npm run typecheck` runs `tsc --noEmit`. | PASS |
 
 ## Suggested remediations (prioritized)
 
@@ -41,6 +42,7 @@ rg -n "cookie|cookies|setCookie|getAllCookies|getCookie|session\\.fromPartition|
 
 echo "==> scripted posture check"
 npm run security:check
+npm run typecheck
 
 echo "==> webPreferences"
 rg -n "webPreferences\\s*:\\s*\\{|nodeIntegration\\s*:\\s*false|contextIsolation\\s*:\\s*true|sandbox\\s*:\\s*true|webSecurity\\s*:\\s*true|webviewTag\\s*:\\s*false|allowRunningInsecureContent\\s*:\\s*false" src/main.ts
@@ -60,7 +62,9 @@ test -f dist/main.js && echo \"dist/main.js present\" || echo \"dist/main.js mis
 npm run package:diagnose
 ```
 
-This builds the TypeScript entrypoint, asks Electron Builder for an unsigned arm64 directory package, and terminates with exit code `124` if the local packaging process does not complete within the diagnostic timeout. It sets `NO_UPDATE_NOTIFIER=1` for the Electron Builder child process so the diagnostic does not depend on an npm registry check. It does not install or update `/Applications/ChatGPT Wrapper.app`; compare that installed app separately if you need to confirm it is not stale.
+This builds the TypeScript entrypoint, asks Electron Builder for an unsigned arm64 directory package, and terminates with exit code `124` if the local packaging process does not complete within the diagnostic timeout. It sets `NO_UPDATE_NOTIFIER=1` for the Electron Builder child process as deterministic packaging hygiene, not as a personal-network workaround. It does not install or update `/Applications/ChatGPT Wrapper.app`; compare that installed app separately if you need to confirm it is not stale.
+
+See `docs/packaging.md` for the normal release flow, diagnostic-only flow, and intentional packaging safeguards.
 
 ## GUI validation playbook
 

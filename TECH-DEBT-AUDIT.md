@@ -12,10 +12,11 @@ This repository is intentionally small: a macOS Electron `BrowserWindow` wrapper
 - Tightened package contents to runtime files, `LICENSE`, and `README.md`; generated artifacts remain ignored under `dist/` and `release/`.
 - Disabled Electron Builder's native dependency rebuild for this dependency-free app so packaging does not wait on unnecessary `@electron/rebuild` work.
 - Added a local macOS app icon so package output no longer falls back to Electron's default icon.
+- Restored the normal TypeScript compiler build path (`tsc -p tsconfig.json`) and added `npm run typecheck`, removing the temporary transpile-only build script.
+- Added `docs/packaging.md` to separate normal release flow, diagnostic-only flow, intentional safeguards, and troubleshooting steps.
 
 ## Remaining
 
-- `scripts/build.cjs` intentionally uses `typescript.transpileModule` because TypeScript CLI/program compilation has also hung in this environment. That keeps `npm run build` reliable, but it is not a full project typecheck.
 - GUI validation was not performed here because the current work only changes source diagnostics, package scripts, and docs. Launch validation should be done before shipping a user-facing build.
 
 ## Stable Posture
