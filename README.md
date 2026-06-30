@@ -1,50 +1,50 @@
 # ChatGPT Wrapper
 
 <p align="center">
-  <strong>A quiet macOS shell for ChatGPT.</strong><br>
-  Hardened Electron, TypeScript, persistent login, and a practical escape hatch for passkey-heavy auth.
+  <strong>A small macOS wrapper for the ChatGPT website.</strong><br>
+  TypeScript, Electron, persistent login, and no API key required.
 </p>
 
 <p align="center">
-  <a href="#why">Why</a> ·
-  <a href="#design">Design</a> ·
-  <a href="#run">Run</a> ·
-  <a href="#package">Package</a> ·
-  <a href="#auth-fallback">Auth Fallback</a>
+  <a href="#what-it-is">What it is</a> ·
+  <a href="#how-it-works">How it works</a> ·
+  <a href="#run-it">Run it</a> ·
+  <a href="#package-it">Package it</a> ·
+  <a href="#license">License</a>
 </p>
 
 ---
 
-## Why
+## What it is
 
-This project is intentionally small. It is not a ChatGPT clone, not an API client, and not a browser extension. It is a desktop wrapper around the real ChatGPT web app, built so the operating surface stays easy to inspect.
+ChatGPT Wrapper is a lightweight desktop shell for the real ChatGPT web app. It opens ChatGPT in a macOS window, keeps the code easy to inspect, and avoids extra product surface that would make the app harder to trust.
 
-The core idea is simple:
+It does not call the OpenAI API, clone ChatGPT, add analytics, or handle tokens directly.
 
 ```mermaid
 flowchart LR
-  A["macOS app"] --> B["Hardened BrowserWindow"]
-  B --> C["ChatGPT web app"]
+  A["macOS app"] --> B["Hardened Electron window"]
+  B --> C["ChatGPT website"]
   B --> D["persist:chatgpt session"]
-  C --> E["OpenAI auth"]
-  C --> F["Allowed static/content hosts"]
-  C -. "external links" .-> G["Default browser"]
-  C -. "passkey fallback" .-> H["Chrome app mode"]
+  C --> E["OpenAI login"]
+  C -. "external links" .-> F["Default browser"]
+  C -. "passkey fallback" .-> G["Chrome app mode"]
 ```
 
-## Design
+## How it works
 
-| Principle | Implementation |
+| Area | Choice |
 | --- | --- |
-| Thin wrapper | Loads `https://chat.openai.com/` and follows current ChatGPT redirects. |
-| No webview | Uses Electron `BrowserWindow`; no `<webview>` tag. |
-| Session isolation | Stores site state in `persist:chatgpt`, separate from other Electron sessions. |
-| No token handling | Does not copy, export, scrape, or write auth tokens/cookies into custom files. |
-| Least privilege | Keeps `sandbox`, `contextIsolation`, and `webSecurity` enabled with Node disabled in remote content. |
-| Link boundaries | Keeps OpenAI/auth/static hosts in-app and sends unrelated links to the system browser. |
-| Passkey realism | Strips Electron from the user agent and includes a Chrome app-mode fallback for Google passkey loops. |
+| App shell | Electron `BrowserWindow`, not `<webview>` |
+| Language | TypeScript |
+| Build | Local TypeScript transpile script |
+| Login persistence | Dedicated `persist:chatgpt` Electron session |
+| Token handling | No custom cookie, token, or local storage copying |
+| Security defaults | Sandbox on, context isolation on, Node off for web content |
+| Links | OpenAI/auth pages stay in-app; unrelated links open in the browser |
+| Passkeys | Chrome app-mode fallback for Google/passkey flows that do not like Electron |
 
-## Run
+## Run it
 
 ```bash
 npm install
@@ -52,7 +52,7 @@ npm run build
 npm start
 ```
 
-## Package
+## Package it
 
 Unsigned local macOS builds:
 
@@ -62,9 +62,9 @@ npm run dist:mac:x64:unsigned
 npm run dist:mac:universal:unsigned
 ```
 
-Artifacts are written to `release/`, which is intentionally ignored by Git.
+Build output goes to `release/`, which is ignored by Git.
 
-Signed/notarized builds use the standard scripts after Apple credentials are available:
+Signed and notarized builds use the regular packaging scripts once Apple credentials are available:
 
 ```bash
 export APPLE_ID="your-apple-id@example.com"
@@ -76,19 +76,19 @@ npm run dist:mac:x64
 npm run dist:mac:universal
 ```
 
-If credentials are absent, `build/notarize.cjs` skips notarization cleanly.
+If those variables are missing, the notarization hook skips cleanly.
 
-## Auth Fallback
+## Passkey note
 
-Google passkeys can fail inside embedded Chromium/Electron contexts even when the same account works in Chrome or Safari. If Google gets stuck on "Complete sign-in using your passkey," use:
+Some Google passkey flows do not work well inside Electron, even when the same account works in a regular browser. For that case, the app menu includes:
 
 ```text
-ChatGPT Wrapper -> Open in Chrome App Mode
+Open in Chrome App Mode
 ```
 
-That opens ChatGPT in a Chrome app-style window backed by your normal Chrome profile, where existing passkeys and MFA methods are most likely to work.
+That opens ChatGPT in a Chrome app-style window backed by the normal Chrome profile.
 
-## Security Checks
+## Security checks
 
 ```bash
 npm run build
@@ -96,15 +96,8 @@ rg -n "<webview\\b|webviewTag\\s*:\\s*true" src/main.ts
 rg -n "setCookie|getCookie|getAllCookies|Authorization|Bearer|localStorage|sessionStorage|token" src/main.ts
 ```
 
-The first command should pass. The two `rg` checks should not find implementation hits that indicate webview use or custom token handling.
+The build should pass. The two `rg` checks should not find implementation hits for webview use or custom token handling.
 
-## Repository Shape
+## License
 
-```text
-src/main.ts                  Electron main process
-build/notarize.cjs           Optional notarization hook
-build/entitlements.mac.plist macOS hardened runtime entitlements
-SECURITY-AUDIT-CHECKLIST.md  Review checklist and validation notes
-```
-
-Generated folders such as `dist/`, `release/`, and `node_modules/` are intentionally excluded from Git.
+Released under [The Unlicense](LICENSE). Use it however you like.

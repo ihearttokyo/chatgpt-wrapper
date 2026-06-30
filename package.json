@@ -1,13 +1,11 @@
 {
   "name": "chatgpt-wrapper",
   "version": "0.1.0",
-  "private": true,
   "description": "Lightweight macOS ChatGPT web wrapper built with Electron and TypeScript.",
   "main": "dist/main.js",
-  "author": "",
-  "license": "MIT",
+  "license": "Unlicense",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "node scripts/build.cjs",
     "start": "npm run build && electron .",
     "dist:mac:arm64": "npm run build && electron-builder --mac dmg zip --arm64",
     "dist:mac:x64": "npm run build && electron-builder --mac dmg zip --x64",
@@ -25,6 +23,7 @@
     },
     "files": [
       "dist/**/*",
+      "scripts/build.cjs",
       "build/notarize.cjs"
     ],
     "mac": {
